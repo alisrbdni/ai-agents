@@ -1,0 +1,119 @@
+import streamlit as st
+import requests
+import json
+import os
+
+# Configuration
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+
+st.set_page_config(layout="wide", page_title="AI Agents samples")
+st.title("AI Agents samples")
+
+tabs = st.tabs(["3.1 Conversational Core", "3.2 RAG", "3.3 Planning Agent", "3.4 Self-Healing Coder"])
+
+# --- Task 3.1: Chat ---
+with tabs[0]:
+    st.header("Conversational Core & Telemetry")
+    
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+        
+    # Display history
+    for msg in st.session_state.chat_history:
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
+            if "metrics" in msg:
+                m = msg["metrics"]
+                st.caption(f"Lat: {m['latency_ms']}ms | Cost: ${m['cost_usd']} | In: {m['prompt_tokens']} / Out: {m['completion_tokens']}")
+
+    if prompt := st.chat_input("Type a message..."):
+        st.session_state.chat_history.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.write(prompt)
+            
+        with st.chat_message("assistant"):
+            box = st.empty()
+            text = ""
+            metrics = None
+            
+            with requests.post(f"{BACKEND_URL}/chat", json={"message": prompt}, stream=True) as r:
+                for line in r.iter_lines():
+                    if line:
+                        data = json.loads(line)
+                        if data["type"] == "content":
+                            text += data["data"]
+                            box.markdown(text + "▌")
+                        elif data["type"] == "metrics":
+                            metrics = data["data"]
+                        elif data["type"] == "error":
+                            st.error(data["data"])
+                            
+            box.markdown(text)
+            if metrics:
+                st.caption(f"Lat: {metrics['latency_ms']}ms | Cost: ${metrics['cost_usd']}")
+                
+            st.session_state.chat_history.append({"role": "assistant", "content": text, "metrics": metrics})
+
+# --- Task 3.2: RAG ---
+with tabs[1]:
+    st.header("High-Performance RAG")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Ingestion")
+        default_url = "https://www.mrsmuellersworld.com/uploads/1/3/0/5/13054185/lord-of-the-rings-01-the-fellowship-of-the-ring_full_text.pdf"
+        url = st.text_input("PDF URL", default_url)
+        if st.button("Ingest"):
+            with st.spinner("Ingesting..."):
+                try:
+                    res = requests.post(f"{BACKEND_URL}/rag/ingest", json={"url": url, "name": "LOTR"})
+                    st.success(f"Ingested {res.json()['chunks_count']} chunks.")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+    with col2:
+        st.subheader("Automated Eval")
+        if st.button("Run Top-5 Accuracy Test"):
+            with st.spinner("Evaluating..."):
+                res = requests.post(f"{BACKEND_URL}/rag/eval").json()
+                st.metric("Retrieval Accuracy", f"{res['accuracy']*100:.1f}%")
+                with st.expander("Details"):
+                    st.json(res['details'])
+
+    st.divider()
+    st.subheader("QA Endpoint")
+    q = st.text_input("Ask about the document:")
+    if st.button("Search"):
+        with st.spinner("Searching..."):
+            res = requests.post(f"{BACKEND_URL}/rag/query", json={"query": q}).json()
+            st.write(res['answer'])
+            st.metric("Retrieval Latency", f"{res['retrieval_latency_ms']:.1f} ms")
+            st.caption("Citations: " + str(res['citations']))
+
+# --- Task 3.3: Agent ---
+with tabs[2]:
+    st.header("Autonomous Planning Agent")
+    goal = st.text_area("Goal", "Plan a 2-day trip to Auckland for under NZ$500")
+    if st.button("Run Planner"):
+        with st.spinner("Agent is thinking (and calling tools)..."):
+            res = requests.post(f"{BACKEND_URL}/agent", json={"prompt": goal}).json()
+            
+        st.subheader("Reasoning Logs")
+        for log in res['logs']:
+            st.code(log, language="text")
+            
+        st.subheader("Final Plan")
+        st.markdown(res['plan'])
+
+# --- Task 3.4: Coder ---
+with tabs[3]:
+    st.header("Self-Healing Code Assistant")
+    task = st.text_input("Coding Task", "Write a python function to calculate fibonacci sequence recursively and test it.")
+    if st.button("Generate Code"):
+        box = st.empty()
+        output = ""
+        with requests.post(f"{BACKEND_URL}/coder", json={"prompt": task}, stream=True) as r:
+            for line in r.iter_lines():
+                if line:
+                    output += line.decode('utf-8') + "\n"
+                    box.text(output)
