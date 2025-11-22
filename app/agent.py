@@ -62,7 +62,7 @@ tools = [
 def run_planning_agent(prompt: str):
     """Task 3.3: Autonomous Planning Agent with Tool Calling."""
     messages = [
-        {"role": "system", "content": "You are a travel planner. You must plan within budget. Output the final result as a JSON itinerary."},
+        {"role": "system", "content": "You are a travel planner. You must plan within budget. Output the final result as a JSON itinerary.dont ask extra questions"},
         {"role": "user", "content": prompt}
     ]
     
