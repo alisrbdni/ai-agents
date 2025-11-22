@@ -4,11 +4,18 @@ from fastapi.responses import StreamingResponse
 from typing import List, Optional
 
 from app.chat import stream_chat
-from app.rag import ingest_document, query_knowledge_base, run_automated_eval
+from app.rag import ingest_document, query_knowledge_base, run_automated_eval, pre_populate_docs, get_ingested_documents
 from app.agent import run_planning_agent
 from app.coder import generate_and_heal_code
 
 app = FastAPI(title="AI Platform")
+
+@app.on_event("startup")
+async def startup_event():
+    """Pre-populates the document database on application startup."""
+    print("Pre-populating documents...")
+    pre_populate_docs()
+    print("Documents pre-populated.")
 
 # --- Models ---
 class ChatRequest(BaseModel):
@@ -48,6 +55,11 @@ async def rag_query(req: QueryRequest):
 async def rag_eval():
     """Task 3.2d: Eval"""
     return run_automated_eval()
+
+@app.get("/rag/ingested-docs")
+async def rag_ingested_docs():
+    """Returns the list of ingested documents."""
+    return {"documents": get_ingested_documents()}
 
 @app.post("/agent")
 async def agent_endpoint(req: AgentRequest):

@@ -23,6 +23,38 @@ collection = client.get_or_create_collection(
     embedding_function=embed_fn
 )
 
+def pre_populate_docs():
+    """Pre-populate the vector database with the required documents."""
+    documents = {
+        "Lord of the Rings — Fellowship": "https://www.mrsmuellersworld.com/uploads/1/3/0/5/13054185/lord-of-the-rings-01-the-fellowship-of-the-ring_full_text.pdf",
+        "Star Wars — Revenge of the Sith": "https://www.scribd.com/document/346643809/Revenge-Of-The-Sith-pdf"
+    }
+
+    # Get the list of already ingested documents
+    ingested_docs = get_ingested_documents()
+    
+    for name, url in documents.items():
+        if name not in ingested_docs:
+            print(f"Ingesting {name}...")
+            ingest_document(url, name)
+        else:
+            print(f"'{name}' already ingested. Skipping.")
+
+def get_ingested_documents():
+    """Retrieve the list of ingested documents."""
+    # Since we can't get a simple list of unique sources, we query for a common term
+    # and extract the sources from the metadata. This is a workaround.
+    try:
+        results = collection.query(query_texts=["the"], n_results=100)
+        sources = set()
+        if results['metadatas']:
+            for metadata in results['metadatas'][0]:
+                sources.add(metadata['source'])
+        return list(sources)
+    except Exception:
+        # This will happen if the collection is empty
+        return []
+
 llm_client = openai.AzureOpenAI(
     azure_endpoint=OPENAI_BASE_URL,
     api_key=OPENAI_API_KEY,
@@ -75,7 +107,7 @@ def query_knowledge_base(query: str):
     # 1. Retrieval (Fast local embedding + HNSW search)
     results = collection.query(
         query_texts=[query],
-        n_results=3
+        n_results=5 # Increased n_results for better context
     )
     
     retrieval_latency = timer.stop()
@@ -87,12 +119,15 @@ def query_knowledge_base(query: str):
         for i, doc in enumerate(results['documents'][0]):
             source = results['metadatas'][0][i]['source']
             context += f"[Citation {i+1}, Source: {source}]: {doc}\n\n"
-            citations.append(f"[{i+1}] {source}")
+            if source not in citations:
+                citations.append(source)
             
     # 2. Generation
     prompt = f"""
-    You are a helpful assistant. Answer the user's question using ONLY the context below.
-    If the answer is not in the context, say "I don't know".
+    You are a helpful assistant. Answer the user's question based on the context below.
+    Provide a detailed answer and include inline citations for each piece of information.
+    For example, if you use information from Source 'Book A', you should write '... (Citation: Book A)'.
+    If the answer is not in the context, say "I don't have enough information to answer this question".
     
     Context:
     {context}

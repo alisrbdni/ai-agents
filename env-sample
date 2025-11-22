@@ -1,7 +1,0 @@
-# Credentials provided in the task
-OPENAI_BASE_URL=
-OPENAI_API_KEY=
-MODEL_NAME=Gpt4o
-
-# Local settings
-BACKEND_URL=http://localhost:8000

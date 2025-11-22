@@ -57,19 +57,16 @@ with tabs[0]:
 # --- Task 3.2: RAG ---
 with tabs[1]:
     st.header("High-Performance RAG")
-    
+
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("Ingestion")
-        default_url = "https://www.mrsmuellersworld.com/uploads/1/3/0/5/13054185/lord-of-the-rings-01-the-fellowship-of-the-ring_full_text.pdf"
-        url = st.text_input("PDF URL", default_url)
-        if st.button("Ingest"):
-            with st.spinner("Ingesting..."):
-                try:
-                    res = requests.post(f"{BACKEND_URL}/rag/ingest", json={"url": url, "name": "LOTR"})
-                    st.success(f"Ingested {res.json()['chunks_count']} chunks.")
-                except Exception as e:
-                    st.error(f"Error: {e}")
+        st.subheader("Ingested Documents")
+        try:
+            docs = requests.get(f"{BACKEND_URL}/rag/ingested-docs").json()['documents']
+            for doc in docs:
+                st.success(doc)
+        except Exception as e:
+            st.error(f"Could not load ingested documents. Is the backend running? \n\n{e}")
 
     with col2:
         st.subheader("Automated Eval")
@@ -86,9 +83,12 @@ with tabs[1]:
     if st.button("Search"):
         with st.spinner("Searching..."):
             res = requests.post(f"{BACKEND_URL}/rag/query", json={"query": q}).json()
-            st.write(res['answer'])
+            st.info(res['answer'])
             st.metric("Retrieval Latency", f"{res['retrieval_latency_ms']:.1f} ms")
-            st.caption("Citations: " + str(res['citations']))
+            
+            with st.expander("Citations"):
+                for citation in res['citations']:
+                    st.write(citation)
 
 # --- Task 3.3: Agent ---
 with tabs[2]:
