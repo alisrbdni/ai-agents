@@ -10,12 +10,12 @@ The solution is built as a decoupled architecture using **FastAPI** for the back
 **Reasoning:** The requirement was to persist the last 10 messages. A relational database is better suited for retrieving exact, chronological history than a vector store (which finds semantic matches). It is also more persistent than memory and lighter than a full PostgreSQL instance.
 
 ### 2. Local Embeddings for RAG (Task 3.2)
-**Decision:** I utilized the `all-MiniLM-L6-v2` model running locally via `sentence-transformers` instead of calling OpenAI's Embedding API.
+**Decision:** I utilized the `all-MiniLM-L6-v2` model running locally via `sentence-transformers` instead of calling OpenAI's Embedding API for rag evalutions frameworks like DeepEval can be also used in production.
 **Trade-off:** **Latency vs. Semantic Power.**
 **Reasoning:** The task required a median retrieval time of **≤ 300ms**. API calls to Azure OpenAI introduce network latency that often fluctuates between 200ms and 500ms, putting the SLA at risk. Local embeddings eliminate network overhead, achieving retrieval times often under 50ms. While `MiniLM` is less powerful than `text-embedding-3-large`, it is sufficient for the specific task of querying the Lord of the Rings corpus.
 
 ### 3. Native Function Calling vs. Agent Frameworks (Task 3.3)
-**Decision:** I implemented the agent loop using OpenAI's native Function Calling API features rather than using LangChain or Semantic Kernel agents.
+**Decision:** I implemented the agent loop using OpenAI's native Function Calling API features rather than using LangChain or Semantic Kernel agents can be used for Production specially Semantic Kernel will help with scaling ,internal memory A2A and tool calling and for evals of tools trajectory openai reinforced fine tuning can be used .
 **Reasoning:** Frameworks often obscure the underlying logic of the "ReAct" (Reasoning + Acting) loop. Implementing the message appending strategy manually demonstrates a clearer understanding of how the LLM maintains state and reasoning logs ("scratch-pad") between tool calls.
 
 ### 4. Direct Subprocess Execution (Task 3.4)
