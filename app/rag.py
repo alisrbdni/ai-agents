@@ -80,8 +80,8 @@ def ingest_document(url: str, source_name: str):
         os.remove(temp_path)
         
         # Chunking (Recursive-like sliding window)
-        chunk_size = 500 # chars
-        overlap = 50
+        chunk_size = 1000 # chars
+        overlap = 200
         chunks = []
         metadatas = []
         ids = []
@@ -119,8 +119,13 @@ def query_knowledge_base(query: str):
         for i, doc in enumerate(results['documents'][0]):
             source = results['metadatas'][0][i]['source']
             context += f"[Citation {i+1}, Source: {source}]: {doc}\n\n"
-            if source not in citations:
-                citations.append(source)
+            
+            # Create a snippet for the citation
+            snippet = doc.replace('\n', ' ').strip()[:80] + '...'
+            citation_with_snippet = f"{source}: \"{snippet}\""
+            
+            if citation_with_snippet not in citations:
+                citations.append(citation_with_snippet)
             
     # 2. Generation
     prompt = f"""

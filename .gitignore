@@ -16,3 +16,5 @@ data/chroma/fbdc50b4-4b8d-4eac-b8c2-e682cf99e767/length.bin
 data/chroma/fbdc50b4-4b8d-4eac-b8c2-e682cf99e767/link_lists.bin
 .env
 env-sample
+app/__pycache__/rag.cpython-312.pyc
+app/__pycache__/__init__.cpython-312.pyc

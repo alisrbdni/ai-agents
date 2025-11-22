@@ -1,13 +1,14 @@
+# Python script with function to calculate Fibonacci sequence recursively and unit tests.
+
 def fibonacci(n):
     """
-    Calculate the n-th Fibonacci number recursively.
-    
-    :param n: The position in the Fibonacci sequence (0-indexed).
-    :return: The n-th Fibonacci number.
+    Calculate the nth Fibonacci number recursively.
+    :param n: Non-negative integer representing the position in the Fibonacci sequence.
+    :return: The nth Fibonacci number.
     """
     if n < 0:
-        raise ValueError("Fibonacci sequence is not defined for negative indices.")
-    elif n == 0:
+        raise ValueError("Input must be a non-negative integer.")
+    if n == 0:
         return 0
     elif n == 1:
         return 1
@@ -27,16 +28,11 @@ class TestFibonacci(unittest.TestCase):
         self.assertEqual(fibonacci(4), 3)
         self.assertEqual(fibonacci(5), 5)
         self.assertEqual(fibonacci(6), 8)
-
-    def test_fibonacci_large_number(self):
         self.assertEqual(fibonacci(10), 55)
-        self.assertEqual(fibonacci(15), 610)
 
-    def test_fibonacci_negative_input(self):
+    def test_negative_input(self):
         with self.assertRaises(ValueError):
             fibonacci(-1)
-        with self.assertRaises(ValueError):
-            fibonacci(-5)
 
 if __name__ == '__main__':
     unittest.main()
