@@ -107,7 +107,7 @@ def query_knowledge_base(query: str):
     # 1. Retrieval (Fast local embedding + HNSW search)
     results = collection.query(
         query_texts=[query],
-        n_results=5 # Increased n_results for better context
+        n_results=10 # Increased n_results for better context
     )
     
     retrieval_latency = timer.stop()
@@ -173,7 +173,7 @@ def run_automated_eval():
     results = []
     
     for q, expected in qa_pairs:
-        res = collection.query(query_texts=[q], n_results=5)
+        res = collection.query(query_texts=[q], n_results=10)
         retrieved_docs = " ".join(res['documents'][0]).lower()
         
         # Rough check: if key concept word is in retrieved chunks
