@@ -15,7 +15,6 @@ data/chroma/fbdc50b4-4b8d-4eac-b8c2-e682cf99e767/index_metadata.pickle
 data/chroma/fbdc50b4-4b8d-4eac-b8c2-e682cf99e767/length.bin
 data/chroma/fbdc50b4-4b8d-4eac-b8c2-e682cf99e767/link_lists.bin
 .env
-env-sample
 app/__pycache__/rag.cpython-312.pyc
 app/__pycache__/__init__.cpython-312.pyc
 data/chroma/87859d31-cbaa-4262-8c1d-b04b71600eb4/data_level0.bin
@@ -23,3 +22,4 @@ data/chroma/87859d31-cbaa-4262-8c1d-b04b71600eb4/header.bin
 data/chroma/87859d31-cbaa-4262-8c1d-b04b71600eb4/index_metadata.pickle
 data/chroma/87859d31-cbaa-4262-8c1d-b04b71600eb4/length.bin
 data/chroma/87859d31-cbaa-4262-8c1d-b04b71600eb4/link_lists.bin
+data/chat_history.db
