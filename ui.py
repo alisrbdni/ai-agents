@@ -15,9 +15,17 @@ tabs = st.tabs(["3.1 Conversational Core", "3.2 RAG", "3.3 Planning Agent", "3.4
 with tabs[0]:
     st.header("Conversational Core & Telemetry")
     
+    # Initialize or load chat history
     if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
-        
+        try:
+            # Fetch last 10 messages from the backend
+            response = requests.get(f"{BACKEND_URL}/chat/history")
+            response.raise_for_status()
+            st.session_state.chat_history = response.json().get("history", [])
+        except requests.exceptions.RequestException as e:
+            st.error(f"Could not load chat history: {e}")
+            st.session_state.chat_history = []
+            
     # Display history
     for msg in st.session_state.chat_history:
         with st.chat_message(msg["role"]):
