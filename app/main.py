@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from typing import List, Optional
 
-from app.chat import stream_chat
+from app.chat import stream_chat, get_history
 from app.rag import ingest_document, query_knowledge_base, run_automated_eval, pre_populate_docs, get_ingested_documents
 from app.agent import run_planning_agent
 from app.coder import generate_and_heal_code
@@ -37,6 +37,11 @@ class AgentRequest(BaseModel):
 async def chat_endpoint(req: ChatRequest):
     """Task 3.1: Streaming Chat"""
     return StreamingResponse(stream_chat(req.message), media_type="application/x-ndjson")
+
+@app.get("/chat/history")
+async def chat_history_endpoint():
+    """Returns the last 10 chat messages."""
+    return {"history": get_history()}
 
 @app.post("/rag/ingest")
 async def rag_ingest(req: IngestRequest):
