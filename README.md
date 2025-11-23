@@ -17,3 +17,4 @@ This repository contains AI Agents samples, implemented in Python using FastAPI,
 2. **Docker Run (Recommended)**:
    ```bash
    docker-compose up --build
+   Navigate to localhost:8501 to access UI and localhost:8000/docs to access backend APIs.
